@@ -1,0 +1,5 @@
+.vscode/
+.classes/
+/*.jar
+/src/burp/*.java
+!/src/burp/BurpExtender.java
