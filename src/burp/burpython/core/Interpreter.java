@@ -6,7 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-
+import java.io.UnsupportedEncodingException;
 import java.util.concurrent.ConcurrentHashMap;
 
 import burp.burpython.Burpython;
@@ -23,23 +23,23 @@ public class Interpreter {
         this.threadMap = new ConcurrentHashMap<>();
         this.setAbsPath("python");
 
-        //生成临时文件用于python脚本调用
+        // 生成临时文件用于python脚本调用
         String pack = Util.getStringFromFile("burpython.py");
-        this.burpythonPackage = Util.createTempFile("burpython.py", pack,Util.random(16));
-        
+        this.burpythonPackage = Util.createTempFile("burpython.py", pack, Util.random(16));
+
     }
 
     public Interpreter() {
-        
+
     }
 
     public Interpreter(String abs) {
         this.setAbsPath(abs);
     }
 
-    public void destroy(){
+    public void destroy() {
         File tempDir = this.burpythonPackage.getParentFile();
-        for(File f:tempDir.listFiles()){
+        for (File f : tempDir.listFiles()) {
             f.delete();
         }
         tempDir.delete();
@@ -64,10 +64,10 @@ public class Interpreter {
     }
 
     public void execScript(PythonScript script, Executable exec) {
-        String cmd;
+        String cmd = "";
         if (this.isVersion3()) {
-            cmd = String.format("import base64;import sys;sys.path.append(r'%s');exec(base64.b64decode(b'%s').decode('%s'))",
-                this.burpythonPackage.getParentFile().getAbsolutePath(), Util.b64Encode(script.getSourceCode()),Burpython.getInstance().defaultEncoding);
+            cmd = String.format("import base64;import sys;sys.path.append(r'%s');exec(base64.b64decode(b'%s'))",
+                this.burpythonPackage.getParentFile().getAbsolutePath(),Util.b64Encode(script.getSourceCode()));
         } else {
             cmd = String.format("import base64;import sys;sys.path.append(r'%s');exec base64.b64decode('%s')",
                 this.burpythonPackage.getParentFile().getAbsolutePath(), Util.b64Encode(script.getSourceCode()));
@@ -89,8 +89,8 @@ public class Interpreter {
         BufferedWriter bw = null;
         try {
             process = builder.start();
-            br = new BufferedReader(new InputStreamReader(process.getInputStream(),"UTF-8"));
-            bw = new BufferedWriter(new OutputStreamWriter(process.getOutputStream(), "UTF-8"));
+            br = new BufferedReader(new InputStreamReader(process.getInputStream(),Burpython.getInstance().getDefaultEncoding()));
+            bw = new BufferedWriter(new OutputStreamWriter(process.getOutputStream(), Burpython.getInstance().getDefaultEncoding()));
             exec.handle(br, bw);
             br.close();
             bw.close();

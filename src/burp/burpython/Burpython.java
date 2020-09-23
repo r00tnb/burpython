@@ -25,8 +25,8 @@ public class Burpython {
     public IExtensionHelpers helpers;
     public PrintWriter stdout;
     public IContextMenuInvocation invocation;
-    public final String defaultEncoding = System.getProperty("file.encoding");
 
+    private String defaultEncoding = System.getProperty("file.encoding");
     private BurpythonTab mainTab;
     private Interpreter pythonInterpreter;
     private Boolean debug;
@@ -42,8 +42,13 @@ public class Burpython {
         return Burpython.burpPython;
     }
 
-    Burpython(){
+    {
+        this.defaultEncoding = System.getProperty("file.encoding");
         this.debug = false;
+    }
+
+    Burpython(){
+        
     }
 
     public synchronized void debug(Object obj){
@@ -72,6 +77,20 @@ public class Burpython {
         this.mainTab = new BurpythonTab();
 
         loadConfig();
+
+        setDefaultEncoding();
+    }
+
+    public void setDefaultEncoding(){
+        if(this.pythonInterpreter.isVersion3()){
+            this.defaultEncoding = "UTF-8";
+        }else{
+            this.defaultEncoding = System.getProperty("file.encoding");
+        }
+    }
+
+    public String getDefaultEncoding() {
+        return this.defaultEncoding;
     }
 
     private void loadConfig(){
@@ -90,20 +109,20 @@ public class Burpython {
                     attrMap.put(a[0], a.length<2?"":a[1]);
                 }
                 if(oList[0].equals("Group")){
-                    Group.get(Util.b64Decode(attrMap.get("name")));
+                    Group.get(Util.b64Decode(attrMap.get("name"),"UTF-8"));
                 }else if(oList[0].equals("PythonScript")){
-                    PythonScript s = new PythonScript(Util.b64Decode(attrMap.get("name")));
-                    s.setDescription(Util.b64Decode(attrMap.get("description")));
-                    s.setSourceCode(Util.b64Decode(attrMap.get("sourceCode")));
-                    if(!Util.b64Decode(attrMap.get("group")).equals("")){
+                    PythonScript s = new PythonScript(Util.b64Decode(attrMap.get("name"),"UTF-8"));
+                    s.setDescription(Util.b64Decode(attrMap.get("description"),"UTF-8"));
+                    s.setSourceCode(Util.b64Decode(attrMap.get("sourceCode"),"UTF-8"));
+                    if(!Util.b64Decode(attrMap.get("group"),"UTF-8").equals("")){
                         for(Group g:Group.getGroupList()){
-                            if(g.getName().equals(Util.b64Decode(attrMap.get("group")))){
+                            if(g.getName().equals(Util.b64Decode(attrMap.get("group"),"UTF-8"))){
                                 g.registerScript(s);
                             }
                         }
                     }
                 }else if(oList[0].equals("Interpreter")){
-                    this.pythonInterpreter.setAbsPath(Util.b64Decode(attrMap.get("absPath")));
+                    this.pythonInterpreter.setAbsPath(Util.b64Decode(attrMap.get("absPath"),"UTF-8"));
                 }
             }
         }

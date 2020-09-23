@@ -12,10 +12,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.util.Base64;
-
 
 import burp.burpython.Burpython;
 
@@ -23,7 +23,7 @@ public class Util {
     public static String myFormat(String format, Object... args) {
         Object[] argsList = new Object[args.length];
         for (int i = 0; i < args.length; i++) {
-            argsList[i] = Util.b64Encode(args[i].toString());
+            argsList[i] = Util.b64Encode(args[i].toString(),"UTF-8");
         }
         return String.format(format, argsList);
     }
@@ -68,15 +68,33 @@ public class Util {
         return data.substring(0, end + 1);
     }
 
-    public static String b64Encode(String data) {
-        return Base64.getEncoder().encodeToString(data.getBytes());
+    public static String b64Encode(String data, String charset){
+        String result = "";
+        try {
+            result = new String(Base64.getEncoder().encode(data.getBytes(charset)), charset);
+        } catch (UnsupportedEncodingException e) {
+            // TODO Auto-generated catch block
+            Burpython.getInstance().printStackTrace(e);
+        }
+        return result;
+    }
+    public static String b64Decode(String data, String charset){
+        if(data == null) data = "";
+        String result = "";
+        try {
+            result = new String(Base64.getDecoder().decode(data.getBytes(charset)), charset);
+        } catch (UnsupportedEncodingException e) {
+            // TODO Auto-generated catch block
+            Burpython.getInstance().printStackTrace(e);
+        }
+        return result;
     }
 
-    public static String b64Decode(String data) {
-        if (data == null)
-            data = "";
-
-        return new String(Base64.getDecoder().decode(data));
+    public static String b64Encode(String data){
+        return Util.b64Encode(data, Burpython.getInstance().getDefaultEncoding());
+    }
+    public static String b64Decode(String data){
+        return Util.b64Decode(data, Burpython.getInstance().getDefaultEncoding());
     }
 
     // 生成随机字符串
