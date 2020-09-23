@@ -190,10 +190,10 @@ public class Util {
     }
 
     // 从文件读取文本
-    public static String getStringFromFile(String fileName) {
+    public static String getStringFromFile(String fileName) {//读取resource文件下的资源
         StringBuffer content = new StringBuffer();
         try {
-            InputStream input = PythonScript.class.getResourceAsStream(fileName);
+            InputStream input = Util.class.getResourceAsStream("/burp/burpython/resource/"+fileName);
             InputStreamReader reader = new InputStreamReader(input, "UTF8");
             char[] temp = new char[1024];
             while (reader.read(temp) != -1) {

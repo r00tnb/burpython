@@ -4,6 +4,11 @@ import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 
 import javax.crypto.interfaces.PBEKey;
 import javax.swing.BorderFactory;
@@ -12,6 +17,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JApplet;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -24,6 +30,7 @@ import javax.swing.event.TreeSelectionListener;
 import burp.burpython.Burpython;
 import burp.burpython.core.Group;
 import burp.burpython.core.PythonScript;
+import burp.burpython.core.Util;
 
 public class BurpythonTab {
     private JSplitPane mainPanel;
@@ -48,6 +55,35 @@ public class BurpythonTab {
             l.setForeground(Color.RED);
             tmp1.add(l);
         }
+        JButton exportPackage = new JButton("export Burpython package");
+        tmp1.add(exportPackage);
+        exportPackage.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // TODO Auto-generated method stub
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                fileChooser.setSelectedFile(new File("burpython.py"));
+                fileChooser.showSaveDialog(null);
+                if(fileChooser == null) return;
+                File saveFile = fileChooser.getSelectedFile();
+                if(saveFile.exists()){
+                    if(JOptionPane.showConfirmDialog(null, "File exists.Are you want to over it?") != 0){
+                        return;
+                    }
+                }
+                try {
+                    FileOutputStream writer = new FileOutputStream(saveFile);
+                    writer.write(Util.getStringFromFile("burpython.py").getBytes());
+                    writer.close();
+                } catch (IOException e1) {
+                    // TODO Auto-generated catch block
+                    Burpython.getInstance().error("File \""+ saveFile.getAbsolutePath()+ "\" save failed!");
+                }
+            }
+            
+        });
         JPanel tmp2 = new JPanel(new GridLayout(2, 1, 10, 10));
         JTextArea pathText = new JTextArea(Burpython.getInstance().getPythonInterpreter().getAbsPath());
         pathText.setBorder(BorderFactory.createTitledBorder("Python path:"));

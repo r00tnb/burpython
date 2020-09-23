@@ -31,13 +31,14 @@ public class PythonView extends PlainView {
     final static String NAME_FUNCTION = "(\\w+(?=\\())";
     final static String NAME_OBJECT = "(\\w+)\\.";
     final static String STRING_NORMAL = "(('')|(\"\")|('.*?[^\\\\]')|(\".*?[^\\\\]\"))";
-    final static String STRING_NOTE = "(^#.*)";
+    final static String STRING_NOTE_TOP = "(^#.*)";
+    final static String STRING_NOTE_IN = "(#[^#]*)";
     final static String INTEGER = "(\\d+)";
     final static String OPERATOR = "([+\\-*&^%$!~()=/.{}\\[\\]])";
     final static String DEFINE = "(?:import|from) ([\\w, ]+)";
     
 
-    int mulBoolean = 0;// 当匹配到'''或"""时需要闭合，该值为真。
+    //int mulBoolean = 0;// 当匹配到'''或"""时需要闭合，该值为真。
 
     static{
         DEFAULT = Color.BLACK;
@@ -49,8 +50,9 @@ public class PythonView extends PlainView {
         patternColorsMap.put(Pattern.compile(KEYWORDS), Color.BLUE);
         patternColorsMap.put(Pattern.compile(NAME_OBJECT), new Color(0,150,150));
         patternColorsMap.put(Pattern.compile(NAME_FUNCTION), new Color(255,10,150));
+        patternColorsMap.put(Pattern.compile(STRING_NOTE_IN), new Color(0,200,0));
         patternColorsMap.put(Pattern.compile(STRING_NORMAL), new Color(255,150,20));
-        patternColorsMap.put(Pattern.compile(STRING_NOTE), new Color(0,200,0));
+        patternColorsMap.put(Pattern.compile(STRING_NOTE_TOP), new Color(0,200,0));
     }
 
     public PythonView(Element elem) {
