@@ -26,10 +26,40 @@ class HTTPRequest(object):
         self.request_raw = request_text
         self.request_line = {"method":"GET", "path":"/", "protocol":"HTTP", "major":1, "minor":1}
         self.headers = {}
+        self.cookies = {}
         self.body_raw = ""
+        self.is_json = False
         self.body_json = {}
         self.request_param = {}
         self.parse()
+
+    def build(self):
+        self.request_raw = ''
+        self.request_raw += "{} {} {}/{}.{}\r\n".format(self.request_line.get("method"),
+                                                self.request_line.get("path"),
+                                                self.request_line.get("protocol"),
+                                                self.request_line.get("major"),
+                                                self.request_line.get("minor"))
+        headers = ''
+        for h in self.headers.keys():
+            if h == "Cookie":
+                cookie = ''
+                for c in self.cookies.keys():
+                    cookie += "{}={}; ".format(c, self.cookies.get(c))
+                headers += "Cookie: "+cookie.rstrip("; ")+"\r\n"
+            else:
+                headers += "{}: {}\r\n".format(h, self.headers.get(h))
+        self.request_raw += headers
+        self.request_raw += "\r\n"
+        self.body_raw = ''
+        if self.is_json and self.body_json is not None:
+            self.body_raw = json.dumps(self.body_json)
+        elif self.body_json is not None and not self.is_json:
+            for k in self.body_json:
+                self.body_raw += "{}={}&".format(k,self.body_json.get(k))
+            self.body_raw = self.body_raw.rstrip("&")
+        self.request_raw += self.body_raw
+        return self.request_raw
 
     def parse(self):
         re_request_line = re.match(r"(GET|POST|HEAD|OPTIONS|MOVE|PUT|TRACE|DELETE) (/\S*) (HTTP|HTTPS)/(\d+)\.(\d+)\r\n",self.request_raw)
@@ -62,12 +92,20 @@ class HTTPRequest(object):
         self.headers = {}
         for h in re_headers:
             self.headers[h[0]] = h[1]
+
+        # parse cookies
+        if self.headers.get("Cookie") is None:
+            self.cookies = {}
+        else:
+            for c in self.headers.get("Cookie").split("; "):
+                p = c.split("=")
+                self.cookies[p[0]] = p[1]
         
         try:
             self.body_json = json.loads(self.body_raw)
         except Exception:
             re_body_json = re.findall(r"([\w_\-\[\]]+)=([^&]*)&?", self.body_raw)
-            if len(re_body_json) == 0:
+            if len(re_body_json) == 0 and len(self.body_raw) != 0:
                 self.body_json = None
             else:
                 self.body_json = {}
@@ -100,6 +138,10 @@ class Action(object):
 
     def update(self, **kw):
         self._keywords.update(kw)
+    def set(self, **kw):
+        for k in kw.keys():
+            kw.update({k:str(kw.get(k))})
+        self._keywords = kw
 
     def _recv_once(self):
         result = {}
@@ -126,12 +168,10 @@ class GenerateText(Action):
     def __init__(self,**kw):
         super(GenerateText,self).__init__(Action.ACTION_MAP["generate_text"],**kw)
     def send_result(self,result):
-        self._keywords.clear()
-        self._keywords.update({"result":str(result)})
+        self.set(result=result)
         return self._send_once()
     def recv_from_ui(self, tips):# return str of ui
-        self._keywords.clear()
-        self._keywords.update({"ui":"1","tips":str(tips)})
+        self.set(ui="1", tips=tips)
         self._send_once()
         return self._recv_once().get("ui")
 
@@ -141,19 +181,22 @@ class UpdateRequest(Action):
     def send_result(self):
         return self._send_once()
     def update_header(self,header_name, header_value):
-        self._keywords.clear()
-        self.update(update_header="1", header_name=header_name, header_value=header_value)
+        self.set(update_header="1", header_name=header_name, header_value=header_value)
         return self._send_once()
     def get_request(self):
-        self._keywords.clear()
-        self.update(get_request="1")
+        self.set(get_request="1")
         self._send_once()
         return self._recv_once().get("request")
     def get_all_request(self):
-        self._keywords.clear()
-        self.update(get_all_request="1")
+        self.set(get_all_request="1")
         self._send_once()
         data = self._recv_once()
-        data.update({"last":data.get(str(len(data)-1))})
         return data
-    
+    def get_last_request(self):
+        self.set(get_last_request="1")
+        self._send_once()
+        data = self._recv_once()
+        return data.get("last")
+    def set_request(self, request):
+        self.set(set_request=1, request=request)
+        return self._send_once()

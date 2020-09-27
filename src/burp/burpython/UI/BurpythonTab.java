@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.HashMap;
 
 import javax.crypto.interfaces.PBEKey;
 import javax.swing.BorderFactory;
@@ -16,6 +17,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JApplet;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -24,6 +26,8 @@ import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JTree;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 
@@ -49,14 +53,32 @@ public class BurpythonTab {
     public void renderPythonInfoPanel() {
         this.pythonInfoPanel.removeAll();
         Box tmp1 = Box.createVerticalBox();
+        Box optionBox = Box.createVerticalBox();
         tmp1.add(new JLabel("version: " + Burpython.getInstance().getPythonInterpreter().getVersion()));
         if (!Burpython.getInstance().getPythonInterpreter().isUseable()) {
             JLabel l = new JLabel("ERROR!The python interpreter is not useable!Check it out.");
             l.setForeground(Color.RED);
             tmp1.add(l);
         }
+        tmp1.add(optionBox);
+        JCheckBox debugCheck = new JCheckBox("输出调试信息", Burpython.getInstance().isDebug());
+        optionBox.add(debugCheck);
+        debugCheck.addChangeListener(new ChangeListener() {
+
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                // TODO Auto-generated method stub
+                JCheckBox box = (JCheckBox)e.getSource();
+                if(box.isSelected()){
+                    Burpython.getInstance().setDebug(true);
+                }else{
+                    Burpython.getInstance().setDebug(false);
+                }
+            }
+            
+        });
         JButton exportPackage = new JButton("export Burpython package");
-        tmp1.add(exportPackage);
+        optionBox.add(exportPackage);
         exportPackage.addActionListener(new ActionListener() {
 
             @Override

@@ -51,6 +51,13 @@ public class Burpython {
         
     }
 
+    public void setDebug(Boolean b){
+        this.debug = b;
+    }
+    public Boolean isDebug(){
+        return this.debug;
+    }
+
     public synchronized void debug(Object obj){
         if(this.debug)
             this.stdout.println(obj);

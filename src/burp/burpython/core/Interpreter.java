@@ -95,6 +95,7 @@ public class Interpreter {
             br.close();
             bw.close();
         }catch(IOException ie){
+            exec.fail();
             Burpython.getInstance().debug("process stream closed or error");
         }catch (Exception e) {
             // TODO: handle exception
@@ -145,6 +146,7 @@ public class Interpreter {
                 // TODO Auto-generated method stub
                 useable = false;
                 version = "";
+                Burpython.getInstance().getBurpythonTab().renderPythonInfoPanel();
             }
         }, path, "-h");
         this.absPath = path;
