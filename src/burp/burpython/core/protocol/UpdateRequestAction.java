@@ -16,7 +16,7 @@ public class UpdateRequestAction implements MyAction {
     @Override
     public ResponseData doAction(HashMap<String, String> paramMap) {
         // TODO Auto-generated method stub
-        if (Burpython.getInstance().invocation.getToolFlag() != IBurpExtenderCallbacks.TOOL_REPEATER) return null;
+        if (Burpython.getInstance().invocation.getToolFlag() != IBurpExtenderCallbacks.TOOL_REPEATER) return null;// 只在repeater中使用
         IHttpRequestResponse requestResponse = Burpython.getInstance().invocation.getSelectedMessages()[0];
         IRequestInfo requestInfo = Burpython.getInstance().helpers.analyzeRequest(requestResponse);
         byte[] body = Arrays.copyOfRange(requestResponse.getRequest(),requestInfo.getBodyOffset(),requestResponse.getRequest().length);

@@ -167,6 +167,18 @@ public class Util {
         }
     }
 
+    // backspace
+    public static void pressBackspace(){
+        try {
+            Robot robot = new Robot();
+            robot.keyPress(KeyEvent.VK_BACK_SPACE);
+            robot.keyRelease(KeyEvent.VK_BACK_SPACE);
+        } catch (AWTException e) {
+            // TODO Auto-generated catch block
+            Burpython.getInstance().printStackTrace(e);
+        }
+    }
+
     // 模拟鼠标选择文本
     public static void selectText(int offset) {
         try {

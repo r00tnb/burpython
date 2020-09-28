@@ -118,7 +118,8 @@ class Action(object):
     ACTION_MAP = {
         "generate_text":"GenerateText",
         "close":"Close",
-        "update_request":"UpdateRequest"
+        "update_request":"UpdateRequest",
+        "selection_text":"SelectionText"
     }
 
     def __init__(self, action, **kw):
@@ -137,6 +138,8 @@ class Action(object):
         return True
 
     def update(self, **kw):
+        for k in kw.keys():
+            kw.update({k:str(kw.get(k))})
         self._keywords.update(kw)
     def set(self, **kw):
         for k in kw.keys():
@@ -199,4 +202,17 @@ class UpdateRequest(Action):
         return data.get("last")
     def set_request(self, request):
         self.set(set_request=1, request=request)
+        return self._send_once()
+
+class SelectionText(Action):
+    def __init__(self,**kw):
+        super(SelectionText,self).__init__(Action.ACTION_MAP["selection_text"],**kw)
+    def get_select_text(self):
+        self.set(get_select_text=1)
+        self._send_once()
+        return self._recv_once().get("get_select_text")
+    def set_result(self, result, tips, ui=True):
+        self.set(set_result=1, result=result, tips=tips)
+        if ui is True:
+            self.update(ui=1)
         return self._send_once()
