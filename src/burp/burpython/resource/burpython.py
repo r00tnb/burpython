@@ -4,24 +4,29 @@ import re
 import json
 
 def isVersion3():
+    '''judge if python major version is 3'''
     if sys.version_info.major == 3:
         return True
     return False
 def b64Encode(data):
+    '''For base64 encode.The param data must be str.'''
     if isVersion3():
         return base64.b64encode(data.encode()).decode()
     else:
         return base64.b64encode(data)
 def b64Decode(data):
+    '''For base64 decode.The param data must be str.'''
     if isVersion3():
         return base64.b64decode(data.encode()).decode()
     else:
         return base64.b64decode(data)
 
 def println(string):
+    '''print the value of param "string in extender's stdin"'''
     sys.stdout.write("debug "+b64Encode(str(string))+'\n')
  
 class HTTPRequest(object):
+    '''For parsing HTTP/HTTPS request.'''
     def __init__(self, request_text):
         self.request_raw = request_text
         self.request_line = {"method":"GET", "path":"/", "protocol":"HTTP", "major":1, "minor":1}
@@ -34,6 +39,9 @@ class HTTPRequest(object):
         self.parse()
 
     def build(self):
+        '''You can modify the request like this:
+                self.cookie['JSESSIONID'] = '12345'
+            After that,you can call this function to build a new request which has '12345' cookies'''
         self.request_raw = ''
         self.request_raw += "{} {} {}/{}.{}\r\n".format(self.request_line.get("method"),
                                                 self.request_line.get("path"),
@@ -62,6 +70,7 @@ class HTTPRequest(object):
         return self.request_raw
 
     def parse(self):
+        '''Parsing request'''
         re_request_line = re.match(r"(GET|POST|HEAD|OPTIONS|MOVE|PUT|TRACE|DELETE) (/\S*) (HTTP|HTTPS)/(\d+)\.(\d+)\r\n",self.request_raw)
         re_headers = re.findall(r"([^:\s]+?): (.*?)\r\n", self.request_raw)
         if len(re_headers) == 0:
@@ -115,6 +124,7 @@ class HTTPRequest(object):
 
 
 class Action(object):
+    '''This class is base of exchaging data between scripts with extender'''
     ACTION_MAP = {
         "generate_text":"GenerateText",
         "close":"Close",
@@ -127,6 +137,7 @@ class Action(object):
         self._keywords = kw
 
     def _send_once(self):
+        '''Send once data endswith \n like writeline'''
         if self.__action not in Action.ACTION_MAP.values():
             return False
         params = ''
@@ -138,15 +149,18 @@ class Action(object):
         return True
 
     def update(self, **kw):
+        '''Update self._keywords from keyword.'''
         for k in kw.keys():
             kw.update({k:str(kw.get(k))})
         self._keywords.update(kw)
     def set(self, **kw):
+        '''Set the self._keywords'''
         for k in kw.keys():
             kw.update({k:str(kw.get(k))})
         self._keywords = kw
 
     def _recv_once(self):
+        '''Recv once data endswith \n like readline'''
         result = {}
         try:
             text = sys.stdin.readline().rstrip("\n")
@@ -160,58 +174,80 @@ class Action(object):
     
 
 class Close(Action):
+    '''Close the connection.'''
     def __init__(self,**kw):
         super(Close,self).__init__(Action.ACTION_MAP["close"],**kw)
     def close(self):
+        '''Close the connection.'''
         self._keywords.clear()
         self._keywords.update({"msg":"closed"})
         self._send_once()
 
 class GenerateText(Action):
+    '''Generate text on mouse pointer'''
     def __init__(self,**kw):
         super(GenerateText,self).__init__(Action.ACTION_MAP["generate_text"],**kw)
     def send_result(self,result):
+        '''set the latest result'''
         self.set(result=result)
         return self._send_once()
     def recv_from_ui(self, tips):# return str of ui
+        '''It will recv some data from extender by ui.
+            Param tips will be showed on ui.'''
         self.set(ui="1", tips=tips)
         self._send_once()
         return self._recv_once().get("ui")
 
 class UpdateRequest(Action):
+    '''Update request in message editor'''
     def __init__(self,**kw):
         super(UpdateRequest,self).__init__(Action.ACTION_MAP["update_request"],**kw)
     def send_result(self):
+        '''set the latest result'''
         return self._send_once()
     def update_header(self,header_name, header_value):
+        '''Update the request'header in message editor.
+            param header_name indicates header name like "Cookie".
+            param header_value indicates value of header like "JSESSIONID=12345"'''
         self.set(update_header="1", header_name=header_name, header_value=header_value)
         return self._send_once()
     def get_request(self):
+        '''Get current request in message editor.'''
         self.set(get_request="1")
         self._send_once()
         return self._recv_once().get("request")
     def get_all_request(self):
+        '''Get all request from proxy history list.'''
         self.set(get_all_request="1")
         self._send_once()
         data = self._recv_once()
         return data
     def get_last_request(self):
+        '''Get lasted request from proxy history list.'''
         self.set(get_last_request="1")
         self._send_once()
         data = self._recv_once()
         return data.get("last")
     def set_request(self, request):
+        '''Set request to current message editor.But it doesn't work if message editor is read-only.
+            Param request is str.'''
         self.set(set_request=1, request=request)
         return self._send_once()
 
 class SelectionText(Action):
+    '''Handle selection text.'''
     def __init__(self,**kw):
         super(SelectionText,self).__init__(Action.ACTION_MAP["selection_text"],**kw)
     def get_select_text(self):
+        '''Get selection text.'''
         self.set(get_select_text=1)
         self._send_once()
         return self._recv_once().get("get_select_text")
     def set_result(self, result, tips, ui=True):
+        '''Set latest result.
+            Param result is str.
+            Param tips works only when ui is true.
+            param ui will show a dialog on extender if ui is true.And result will replace selection text when ui is false.'''
         self.set(set_result=1, result=result, tips=tips)
         if ui is True:
             self.update(ui=1)

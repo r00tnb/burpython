@@ -1,3 +1,4 @@
+# burpython package is used to help you to complete scripts quickly.
 import burpython
 # The extention use java pipe to communicate, and java read/write python's stdout/stdin 
 
