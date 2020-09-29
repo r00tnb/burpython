@@ -23,8 +23,6 @@ public class Group {
         switch (name) {
             case "listener":
                 return true;
-            case "":
-                return true;
             default:
                 return false;
         }

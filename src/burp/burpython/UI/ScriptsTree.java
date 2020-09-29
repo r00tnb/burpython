@@ -13,6 +13,7 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.awt.Font;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -102,6 +103,10 @@ class NodeRender implements TreeCellRenderer {
             }
         } else if (obj instanceof Group) {
             Group g = (Group) obj;
+            if(Group.isBaseGroup(g.getName())){
+                nameLabel.setForeground(Color.RED);
+                nameLabel.setFont(new Font("新宋体", Font.BOLD, 15));
+            }
             nameLabel.setText(g.toString());
         } else {
             nameLabel.setText(obj.toString());

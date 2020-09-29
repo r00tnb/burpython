@@ -31,6 +31,9 @@ public class BurpythonMenu extends JMenu {
     public void init() {
         for (Group g : Group.getGroupList()) {
             JMenu groupMenu = new JMenu(g.getName());
+            if(Group.isBaseGroup(g.getName())){
+                continue;
+            }
             for(PythonScript s:g.getPythonScripts()){
                 JMenuItem menu = new JMenuItem(s.getName());
                 menu.addActionListener(new ActionListener() {
