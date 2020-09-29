@@ -1,17 +1,25 @@
 package burp.burpython.UI;
 
 import java.util.Enumeration;
+import java.util.EventObject;
 import java.util.Vector;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -19,11 +27,22 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
+import javax.swing.JToggleButton;
 import javax.swing.JTree;
+import javax.swing.UIManager;
+import javax.swing.event.CellEditorListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.plaf.DimensionUIResource;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellEditor;
+import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeCellEditor;
+import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
@@ -32,6 +51,65 @@ import burp.burpython.Burpython;
 import burp.burpython.UI.pyeditor.LineNumberHeaderView;
 import burp.burpython.core.Group;
 import burp.burpython.core.PythonScript;
+
+class NodeRender implements TreeCellRenderer {
+    TreeCellRenderer oldRender;
+
+    public NodeRender(JTree tree) {
+        
+        oldRender = tree.getCellRenderer();
+    }
+
+    @Override
+    public Component getTreeCellRendererComponent(JTree tree, Object value, boolean isSelected, boolean expanded,
+            boolean leaf, int row, boolean hasFouse) {
+        // TODO Auto-generated method stub
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
+        Object obj = node.getUserObject();
+        
+        JPanel panel = new JPanel();
+        JLabel nameLabel;
+        JCheckBox checkBox;
+        panel.setLayout(new GridLayout(1, 3, 10, 10));
+        panel.setOpaque(false);
+        panel.add(nameLabel = new JLabel());
+        panel.add(checkBox = new JCheckBox());
+        checkBox.setVisible(false);
+        panel.setToolTipText(null);
+
+        if (obj instanceof PythonScript) {
+            PythonScript script = (PythonScript) obj;
+            nameLabel.setText(script.getName());
+            for (Group g : Group.getGroupList()) {
+                if (g.haveScript(script.getName())) {
+                    if (g.getName().equals("listener")) {
+                        // checkBox.setHorizontalTextPosition(JCheckBox.LEFT);
+                        if(script.getState().equals(Group.LISTENER_ON)){
+                            checkBox.setForeground(Color.GREEN);
+                            checkBox.setText("Running");
+                            checkBox.setSelected(true);
+                        }else{
+                            checkBox.setForeground(Color.RED);
+                            checkBox.setText("Closed");
+                            checkBox.setSelected(false);
+                        }
+                        checkBox.setVisible(true);
+                        checkBox.setEnabled(true);
+                        panel.add(checkBox);
+                        panel.setToolTipText("The group is used to listen request from extender proxy.");
+                    }
+                }
+            }
+        } else if (obj instanceof Group) {
+            Group g = (Group) obj;
+            nameLabel.setText(g.toString());
+        } else {
+            nameLabel.setText(obj.toString());
+        }
+        return panel;
+    }
+}
+
 
 public class ScriptsTree extends JTree implements MouseListener, TreeSelectionListener {
 
@@ -49,6 +127,10 @@ public class ScriptsTree extends JTree implements MouseListener, TreeSelectionLi
         this.name = name;
         this.scriptInfoPanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         this.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+        this.setCellRenderer(new NodeRender(this));
+
+        this.addMouseListener(this);
+        this.addTreeSelectionListener(this);
     }
 
     public void setSelectionScript(PythonScript script){
@@ -85,10 +167,9 @@ public class ScriptsTree extends JTree implements MouseListener, TreeSelectionLi
                 this.rootNode.add(groupNode);
             }
         }
+        //this.setCellRenderer(new NodeRender(this));
         this.setModel(new DefaultTreeModel(this.rootNode));
 
-        this.addMouseListener(this);// 设置数据后设置右键点击事件
-        this.addTreeSelectionListener(this);
     }
 
     public void expandAll() {// 展开所有节点
@@ -101,12 +182,29 @@ public class ScriptsTree extends JTree implements MouseListener, TreeSelectionLi
     @Override
     public void mouseClicked(MouseEvent e) {
         // TODO Auto-generated method stub
-        if (e.isMetaDown()) {
-            int x = e.getX();
-            int y = e.getY();
-            TreePath path = this.getPathForLocation(x, y);
-            Object obj = path.getLastPathComponent();
-            obj = ((DefaultMutableTreeNode) obj).getUserObject();
+        int x = e.getX();
+        int y = e.getY();
+        TreePath path = this.getPathForLocation(x, y);
+        Object obj = path.getLastPathComponent();
+        obj = ((DefaultMutableTreeNode) obj).getUserObject();
+        if(e.getButton() == MouseEvent.BUTTON1 && e.getClickCount()==2){
+            if(obj instanceof PythonScript){
+                PythonScript script = (PythonScript)obj;
+                for(Group g:Group.getGroupList()){
+                    if(g.haveScript(script.getName())){
+                        if(g.getName().equals("listener")){
+                            if(script.getState().equals(Group.LISTENER_ON)){
+                                script.setState(Group.LISTENER_OFF);
+                            }else{
+                                script.setState(Group.LISTENER_ON);
+                            }
+                            revalidate();
+                            repaint();
+                        }
+                    }
+                }
+            }
+        }else if (e.isMetaDown()) {
             final Object o = obj;
             ScriptsTree tree = this;
 
@@ -216,6 +314,13 @@ public class ScriptsTree extends JTree implements MouseListener, TreeSelectionLi
                 deleteGroupMenu.addActionListener(deleteGroupAction);
                 renameGroupMenu.addActionListener(renameGroupAction);
 
+                if(Group.isBaseGroup(((Group)obj).getName())){
+                    deleteGroupMenu.setEnabled(false);
+                    renameGroupMenu.setEnabled(false);
+                    deleteGroupMenu.addActionListener(null);
+                    renameGroupMenu.addActionListener(null);
+                }
+
                 menu.add(createToolsMenu);
                 menu.add(deleteGroupMenu);
                 menu.add(renameGroupMenu);
@@ -223,10 +328,9 @@ public class ScriptsTree extends JTree implements MouseListener, TreeSelectionLi
             } else if(obj instanceof PythonScript){
                 JPopupMenu menu = new JPopupMenu();
                 JMenuItem deleteScriptMenu = new JMenuItem("delete script");
-
+                
                 deleteScriptMenu.addActionListener(deleteToolAction);
-
-                menu.add(deleteScriptMenu);
+                menu.add(deleteScriptMenu);         
                 menu.show(e.getComponent(), x, y);
             }
         }

@@ -63,7 +63,7 @@ public class Interpreter {
         return useable;
     }
 
-    public void execScript(PythonScript script, Executable exec) {
+    public void execScript(PythonScript script, Executable exec, boolean sync) {
         String cmd = "";
         if (this.isVersion3()) {
             cmd = String.format("import base64;import sys;sys.path.append(r'%s');exec(base64.b64decode(b'%s'))",
@@ -73,7 +73,10 @@ public class Interpreter {
                 this.burpythonPackage.getParentFile().getAbsolutePath(), Util.b64Encode(script.getSourceCode()));
         }
         try {
-            this.executeCommand(script.getName()+"-"+Util.random(4),exec, this.absPath, "-c", cmd);
+            if(!sync)
+                this.executeCommand(script.getName()+"-"+Util.random(4),exec, this.absPath, "-c", cmd);//异步
+            else
+                this.syncExectuteCommand(script.getName()+"-"+Util.random(4),exec, this.absPath, "-c", cmd);//同步
         } catch (Exception e) {
             // TODO Auto-generated catch block
             Burpython.getInstance().printStackTrace(e);

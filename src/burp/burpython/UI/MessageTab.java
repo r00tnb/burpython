@@ -34,93 +34,13 @@ public class MessageTab implements IMessageEditorTab {
     JPanel mainPanel;
     Vector<String> allScroll;
 
-    public void haveJScrollPanel(Container c, String path){
-        if(c instanceof ITextEditor){
-            this.allScroll.add(path);
-        }else if(c.getComponents().length>0){
-            int i=0;
-            for(Component cc:c.getComponents()){
-                if(cc instanceof Container){
-                    this.haveJScrollPanel((Container)cc, path+"."+i);
-                }else{
-                    this.allScroll.add(path+".notContainer");
-                }
-                i++;
-            }
-        }else
-            this.allScroll.add(path+".none");
-    }
-
     public MessageTab(String name) {
         this.name = name;
         this.mainPanel = new JPanel(new GridLayout(2, 1, 10, 10));
         this.mainPanel.setName("okok");
         this.allScroll = new Vector<>();
 
-        JButton b = new JButton("click");
-        JTextArea t = new JTextArea();
-        JScrollPane ss = new JScrollPane(t);
-        b.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // TODO Auto-generated method stub
-                StringBuffer stringBuffer = new StringBuffer();
-                Component[] cList = mainPanel.getParent().getComponents();
-                int i = 0;
-                for (Component c : cList) {
-                    i++;
-                    stringBuffer.append(c.toString() + "\n");
-                    // stringBuffer.append(i+": "+(c instanceof JScrollPane)+"\n");
-                    if (c instanceof JComponent && i == 1) {
-                        haveJScrollPanel((Container)mainPanel.getParent(), "raw");
-                        for(String str:allScroll){
-                            stringBuffer.append(i+": "+str+"\n");
-                        }
-                        stringBuffer.append(i+": "+((JTextComponent)((JComponent)((JComponent)c).getComponent(0)).getComponent(0)).getText()+"\n");
-                        ((JTextComponent)((JComponent)((JComponent)c).getComponent(0)).getComponent(0)).addMouseListener(new MouseListener() {
-
-                            @Override
-                            public void mouseClicked(MouseEvent e) {
-                                // TODO Auto-generated method stub
-
-                            }
-
-                            @Override
-                            public void mousePressed(MouseEvent e) {
-                                // TODO Auto-generated method stub
-
-                            }
-
-                            @Override
-                            public void mouseReleased(MouseEvent e) {
-                                // TODO Auto-generated method stub
-
-                            }
-
-                            @Override
-                            public void mouseEntered(MouseEvent e) {
-                                // TODO Auto-generated method stub
-                                //JOptionPane.showMessageDialog(null, "test123");
-                            }
-
-                            @Override
-                            public void mouseExited(MouseEvent e) {
-                                // TODO Auto-generated method stub
-
-                            }
-                            
-                        });;
-                        
-                    }
-                    
-                }
-                t.setText(stringBuffer.toString());
-            }
-            
-        });
-        this.mainPanel.add(ss);
-        this.mainPanel.add(b);
+        
     }
 
     @Override

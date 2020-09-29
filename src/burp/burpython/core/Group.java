@@ -2,13 +2,34 @@ package burp.burpython.core;
 
 import java.util.Vector;
 
+
 public class Group {
     String name;
     Vector<PythonScript> scriptList;
     
     private static Group defaultGroup;
     private static Vector<Group> groupList = new Vector<>();
+
+    final public static String LISTENER_ON = "on";
+    final public static String LISTENER_OFF = "off";
+
+    static {
+        Group.getDefaultGroup();
+        Group.get("listener");// 监听类型脚本分组
+    }
     
+    public static Boolean isBaseGroup(String name){
+        if(name == null) return false;
+        switch (name) {
+            case "listener":
+                return true;
+            case "":
+                return true;
+            default:
+                return false;
+        }
+    }
+
     public static Group get(String name){
         if(name == null) name = "";
         if(name.equals("")) return Group.getDefaultGroup();
@@ -50,6 +71,15 @@ public class Group {
             g.removeScript(script);
         }
         this.scriptList.add(script);
+        if(!script.getState().equals("")) return;
+        switch (this.name) {//设置加入内置组时的初始状态
+            case "listener":
+                script.setState(Group.LISTENER_OFF);
+                break;
+        
+            default:
+                break;
+        }
     }
 
     public Boolean haveScript(String scriptName){
@@ -93,7 +123,10 @@ public class Group {
     @Override
     public String toString() {
         // TODO Auto-generated method stub
-        if(this == Group.getDefaultGroup()) return "(default group)";
+        if(this == Group.getDefaultGroup()) return "(default)";
+        if(Group.isBaseGroup(this.name)){
+            return this.name+"(Base)";
+        }
         return this.name+"(G)";
     }
 }

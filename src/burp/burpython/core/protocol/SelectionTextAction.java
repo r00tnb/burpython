@@ -67,6 +67,9 @@ public class SelectionTextAction implements MyAction {
         JTextArea textArea = new JTextArea(result);
         JScrollPane scrollPane = new JScrollPane(textArea);
 
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        textArea.setLineWrap(true);
+
         splitPane.setTopComponent(label);
         splitPane.setBottomComponent(scrollPane);
         splitPane.setDividerLocation(100);

@@ -129,7 +129,8 @@ class Action(object):
         "generate_text":"GenerateText",
         "close":"Close",
         "update_request":"UpdateRequest",
-        "selection_text":"SelectionText"
+        "selection_text":"SelectionText",
+        "proxy_handler":"Proxy"
     }
 
     def __init__(self, action, **kw):
@@ -252,3 +253,38 @@ class SelectionText(Action):
         if ui is True:
             self.update(ui=1)
         return self._send_once()
+
+class ProxyHandler(Action):
+    '''Handle current request/response from proxy.'''
+
+    # copy from burp
+    ACTION_FOLLOW_RULES = 0
+    ACTION_DO_INTERCEPT = 1
+    ACTION_DONT_INTERCEPT = 2
+    ACTION_DROP = 3
+    ACTION_FOLLOW_RULES_AND_REHOOK = 0x10
+    ACTION_DO_INTERCEPT_AND_REHOOK = 0x11
+    ACTION_DONT_INTERCEPT_AND_REHOOK = 0x12
+
+    def __init__(self,**kw):
+        super(ProxyHandler,self).__init__(Action.ACTION_MAP["proxy_handler"],**kw)
+    def get_request(self):
+        '''Get current request from proxy.'''
+        self.set(get_request=1)
+        self._send_once()
+        return self._recv_once().get("get_request")
+    def set_action(self, action):
+        '''set proxy action,the func must be called at last.'''
+        self.set(set_action=1, action=action)
+        self._send_once()
+        return self._recv_once()
+    def get_client_ip(self):
+        '''Get the client ip.'''
+        self.set(get_ip=1)
+        self._send_once()
+        return self._recv_once().get("get_ip")
+    def get_proxy_listener_addr(self):
+        '''Get proxy listener addr, like 127.0.0.1:8080'''
+        self.set(get_proxy_listener_addr=1)
+        self._send_once()
+        return self._recv_once().get("get_proxy_listener_addr")

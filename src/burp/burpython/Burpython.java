@@ -3,6 +3,8 @@ package burp.burpython;
 import java.io.PrintWriter;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -11,12 +13,12 @@ import burp.BurpExtender;
 import burp.IBurpExtenderCallbacks;
 import burp.IContextMenuInvocation;
 import burp.IExtensionHelpers;
+import burp.IInterceptedProxyMessage;
 import burp.burpython.UI.BurpythonTab;
 import burp.burpython.core.Group;
 import burp.burpython.core.Interpreter;
 import burp.burpython.core.PythonScript;
 import burp.burpython.core.Util;
-import burp.burpython.core.protocol.GenerateTextAction;
 
 
 public class Burpython {
@@ -24,7 +26,8 @@ public class Burpython {
     public IBurpExtenderCallbacks callbacks;
     public IExtensionHelpers helpers;
     public PrintWriter stdout;
-    public IContextMenuInvocation invocation;
+    volatile public IContextMenuInvocation invocation;
+    volatile public Map<Boolean, IInterceptedProxyMessage> proxydata;
 
     private String defaultEncoding = System.getProperty("file.encoding");
     private BurpythonTab mainTab;
@@ -44,6 +47,7 @@ public class Burpython {
 
     {
         this.defaultEncoding = System.getProperty("file.encoding");
+        this.proxydata = new ConcurrentHashMap<>();
         this.debug = false;
     }
 
@@ -121,6 +125,7 @@ public class Burpython {
                     PythonScript s = new PythonScript(Util.b64Decode(attrMap.get("name"),"UTF-8"));
                     s.setDescription(Util.b64Decode(attrMap.get("description"),"UTF-8"));
                     s.setSourceCode(Util.b64Decode(attrMap.get("sourceCode"),"UTF-8"));
+                    s.setState(Util.b64Decode(attrMap.get("state"),"UTF-8"));
                     if(!Util.b64Decode(attrMap.get("group"),"UTF-8").equals("")){
                         for(Group g:Group.getGroupList()){
                             if(g.getName().equals(Util.b64Decode(attrMap.get("group"),"UTF-8"))){
@@ -155,7 +160,7 @@ public class Burpython {
         for(Group g:Group.getGroupList()){
             for(PythonScript s:g.getPythonScripts()){
                 configString.append("|");
-                configString.append(Util.myFormat("name:%s;description:%s;sourceCode:%s;group:%s", s.getName(),s.getDescription(),s.getSourceCode(),g.getName()));
+                configString.append(Util.myFormat("name:%s;description:%s;sourceCode:%s;group:%s;state:%s", s.getName(),s.getDescription(),s.getSourceCode(),g.getName(),s.getState()));
             }
         }
         //save Interpreter

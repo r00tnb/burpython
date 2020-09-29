@@ -53,7 +53,7 @@ public class BurpythonMenu extends JMenu {
                                 
                             }
                             
-                        });
+                        }, false);
                     }
                     
                 });

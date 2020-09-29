@@ -5,6 +5,7 @@ public class PythonScript {
     String name = "";
     String sourceCode = "";
     String description = "";
+    String state = "";// 在不同的内置分组中表现为不同的意义
 
     public PythonScript(String name) {
         this.name = name;
@@ -14,6 +15,14 @@ public class PythonScript {
 
     public String getName() {
         return name;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
     }
 
     public String getSourceCode() {
@@ -34,6 +43,15 @@ public class PythonScript {
 
     public void setSourceCode(String sourceCode) {
         this.sourceCode = sourceCode;
+    }
+
+    public Group getGroup(){
+        for(Group g:Group.getGroupList()){
+            if(g.haveScript(this.name)){
+                return g;
+            }
+        }
+        return null;
     }
 
     @Override
