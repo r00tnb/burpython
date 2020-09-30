@@ -39,45 +39,10 @@ public class SelectionTextAction implements MyAction {
             switch (k) {
                 case "get_select_text":
                     return new ResponseData("ok").put("get_select_text", new String(selectBytes).substring(start, end));
-                case "set_result":
-                    String result = paramMap.get("result");
-                    Boolean ui = paramMap.containsKey("ui");
-                    String tips = paramMap.get("tips") == null?"The result is:":paramMap.get("tips");
-                    if(ui){
-                        createUI(result, tips);
-                    }else{
-                        Util.pressBackspace();
-                        Util.setSysClipboardText(result);
-                        Util.pressCtrlV();
-                        Util.selectText(-result.length());
-                    }
                 default:
                     break;
             }
         }
         return null;
     }
-
-    void createUI(String result, String tips){
-        JDialog dialog = new JDialog();
-        dialog.setTitle("result");
-        dialog.setModal(true);
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-        JLabel label = new JLabel(tips);  
-        JTextArea textArea = new JTextArea(result);
-        JScrollPane scrollPane = new JScrollPane(textArea);
-
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        textArea.setLineWrap(true);
-
-        splitPane.setTopComponent(label);
-        splitPane.setBottomComponent(scrollPane);
-        splitPane.setDividerLocation(100);
-
-        dialog.setContentPane(splitPane);
-        dialog.setSize(400, 400);
-        dialog.setLocationRelativeTo(null);
-        dialog.setVisible(true);
-    }
-    
 }

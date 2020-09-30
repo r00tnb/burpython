@@ -10,10 +10,12 @@ import burp.burpython.core.protocol.*;
 public class Robot{// 用于和脚本交互
     BufferedReader br;
     BufferedWriter bw;
+    PythonScript scrip;
 
-    public Robot(BufferedReader br, BufferedWriter bw) {
+    public Robot(BufferedReader br, BufferedWriter bw, PythonScript script) {
         this.br = br;
         this.bw = bw;
+        this.scrip = scrip;
     }
 
     public RequestData recvLine(){
@@ -64,14 +66,10 @@ public class Robot{// 用于和脚本交互
                     break;
                 }else if(request.getAction() instanceof DebugAction){
                     Burpython.getInstance().info(
-                        "\n******************Info from script***************\n"+request.getParamsMap().get("debug")+"\n*******************************************\n");
+                        "\n******************Info from script \""+scrip.getName()+"\"***************\n"+request.getParamsMap().get("debug")+"\n*******************************************\n");
                     continue;
                 }
                 ResponseData data = request.getAction().doAction(request.getParamsMap());
-                if(data == null){
-                    Burpython.getInstance().debug("Burpython close connection.");
-                    break;
-                }
                 Burpython.getInstance().debug("send: "+data.info());
                 this.sendLine(data);
             }

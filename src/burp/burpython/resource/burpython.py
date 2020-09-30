@@ -126,11 +126,11 @@ class HTTPRequest(object):
 class Action(object):
     '''This class is base of exchaging data between scripts with extender'''
     ACTION_MAP = {
-        "generate_text":"GenerateText",
         "close":"Close",
         "update_request":"UpdateRequest",
         "selection_text":"SelectionText",
-        "proxy_handler":"Proxy"
+        "proxy_handler":"Proxy",
+        "util":"Util"
     }
 
     def __init__(self, action, **kw):
@@ -172,7 +172,26 @@ class Action(object):
         except Exception:
             pass
         return result
+
+    def call_action(self, action_name, **kw):
+        '''call a function from burpython quickly'''
+        self._keywords[action_name] = "1"
+        self.update(**kw)
+        self._send_once()
+        return self._recv_once()
     
+class Util(Action):
+    '''Provide some input/output for script.'''
+    def __init__(self,**kw):
+        super(Util,self).__init__(Action.ACTION_MAP["util"],**kw)
+    def get_from_ui_input(self, tips):
+        return self.call_action("get_from_ui_input", tips=tips).get("get_from_ui_input")
+    def set_to_mouse_pointer(self, result):
+        return self.call_action("set_to_mouse_pointer", result=result)
+    def set_to_ui_textarea(self, result, tips):
+        return self.call_action("set_to_ui_textarea", tips=tips, result=result)
+
+util = Util()
 
 class Close(Action):
     '''Close the connection.'''
@@ -183,21 +202,6 @@ class Close(Action):
         self._keywords.clear()
         self._keywords.update({"msg":"closed"})
         self._send_once()
-
-class GenerateText(Action):
-    '''Generate text on mouse pointer'''
-    def __init__(self,**kw):
-        super(GenerateText,self).__init__(Action.ACTION_MAP["generate_text"],**kw)
-    def send_result(self,result):
-        '''set the latest result'''
-        self.set(result=result)
-        return self._send_once()
-    def recv_from_ui(self, tips):# return str of ui
-        '''It will recv some data from extender by ui.
-            Param tips will be showed on ui.'''
-        self.set(ui="1", tips=tips)
-        self._send_once()
-        return self._recv_once().get("ui")
 
 class UpdateRequest(Action):
     '''Update request in message editor'''
@@ -244,15 +248,6 @@ class SelectionText(Action):
         self.set(get_select_text=1)
         self._send_once()
         return self._recv_once().get("get_select_text")
-    def set_result(self, result, tips, ui=True):
-        '''Set latest result.
-            Param result is str.
-            Param tips works only when ui is true.
-            param ui will show a dialog on extender if ui is true.And result will replace selection text when ui is false.'''
-        self.set(set_result=1, result=result, tips=tips)
-        if ui is True:
-            self.update(ui=1)
-        return self._send_once()
 
 class ProxyHandler(Action):
     '''Handle current request/response from proxy.'''

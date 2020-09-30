@@ -111,7 +111,7 @@ public class BurpExtender implements IBurpExtender, ITab, IContextMenuFactory, I
                     @Override
                     public void handle(BufferedReader br, BufferedWriter bw) throws IOException {
                         // TODO Auto-generated method stub
-                        new Robot(br, bw).work();
+                        new Robot(br, bw, p).work();
                         p.setRunState(false);
                     }
 
