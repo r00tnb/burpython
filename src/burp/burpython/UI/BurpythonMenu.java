@@ -48,12 +48,13 @@ public class BurpythonMenu extends JMenu {
                             public void handle(BufferedReader br, BufferedWriter bw) throws IOException {
                                 // TODO Auto-generated method stub
                                 new Robot(br, bw).work();
+                                s.setRunState(false);
                             }
 
                             @Override
                             public void fail() {
                                 // TODO Auto-generated method stub
-                                
+                                s.setRunState(false);
                             }
                             
                         }, false);

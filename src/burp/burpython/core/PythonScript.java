@@ -6,6 +6,7 @@ public class PythonScript {
     String sourceCode = "";
     String description = "";
     String state = "";// 在不同的内置分组中表现为不同的意义
+    Boolean isRun = false;
 
     static public PythonScript create(String name){
         for(Group g:Group.getGroupList()){
@@ -24,6 +25,13 @@ public class PythonScript {
 
     public String getName() {
         return name;
+    }
+
+    public Boolean isRun() {
+        return isRun;
+    }
+    public void setRunState(Boolean isRun) {
+        this.isRun = isRun;
     }
 
     public String getState() {

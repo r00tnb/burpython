@@ -71,15 +71,22 @@ class NodeRender implements TreeCellRenderer {
         JPanel panel = new JPanel();
         JLabel nameLabel;
         JCheckBox checkBox;
+        JLabel sss = new JLabel();
+        sss.setForeground(Color.GREEN);
+        sss.setText("Running");
         panel.setLayout(new GridLayout(1, 3, 10, 10));
         panel.setOpaque(false);
         panel.add(nameLabel = new JLabel());
         panel.add(checkBox = new JCheckBox());
+        panel.add(sss);
         checkBox.setVisible(false);
-        panel.setToolTipText(null);
+        sss.setVisible(false);
 
         if (obj instanceof PythonScript) {
             PythonScript script = (PythonScript) obj;
+            if(script.isRun()){
+                sss.setVisible(true);
+            }
             nameLabel.setText(script.getName());
             for (Group g : Group.getGroupList()) {
                 if (g.haveScript(script.getName())) {
@@ -96,8 +103,6 @@ class NodeRender implements TreeCellRenderer {
                         }
                         checkBox.setVisible(true);
                         checkBox.setEnabled(true);
-                        panel.add(checkBox);
-                        panel.setToolTipText("The group is used to listen request from extender proxy.");
                     }
                 }
             }

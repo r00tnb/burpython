@@ -73,6 +73,7 @@ public class Interpreter {
                 this.burpythonPackage.getParentFile().getAbsolutePath(), Util.b64Encode(script.getSourceCode()));
         }
         try {
+            script.setRunState(true);
             if(!sync)
                 this.executeCommand(script.getName()+"-"+Util.random(4),exec, this.absPath, "-c", cmd);//异步
             else
@@ -80,6 +81,7 @@ public class Interpreter {
         } catch (Exception e) {
             // TODO Auto-generated catch block
             Burpython.getInstance().printStackTrace(e);
+            script.setRunState(false);
         }
     }
 

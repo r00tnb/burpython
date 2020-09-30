@@ -27,20 +27,29 @@ import javax.swing.text.JTextComponent;
 import burp.IMessageEditor;
 import burp.IMessageEditorTab;
 import burp.ITextEditor;
+import burp.burpython.Burpython;
 
-public class MessageTab implements IMessageEditorTab {
+public class MessageTab extends JPanel implements IMessageEditorTab {
 
     String name = "";
-    JPanel mainPanel;
-    Vector<String> allScroll;
+    JTextPane textPane;
+    byte[] content;
+    int bodyIndex;
+    String jsonData;
 
     public MessageTab(String name) {
         this.name = name;
-        this.mainPanel = new JPanel(new GridLayout(2, 1, 10, 10));
-        this.mainPanel.setName("okok");
-        this.allScroll = new Vector<>();
+        textPane = new JTextPane();
+        add(textPane);
+    }
 
-        
+    public void formatJson(){
+        String body = new String(content).substring(bodyIndex);
+        jsonData = body;
+        textPane.setText(jsonData);
+        if(body == null || body.length() < 3 || !body.startsWith("{") || !body.endsWith("}")){
+            return;
+        }
     }
 
     @Override
@@ -52,7 +61,7 @@ public class MessageTab implements IMessageEditorTab {
     @Override
     public Component getUiComponent() {
         // TODO Auto-generated method stub
-        return this.mainPanel;
+        return this;
     }
 
     @Override
@@ -64,7 +73,9 @@ public class MessageTab implements IMessageEditorTab {
     @Override
     public void setMessage(byte[] content, boolean isRequest) {
         // TODO Auto-generated method stub
-
+        this.content = content;
+        this.bodyIndex = new String(content).indexOf("\r\n\r\n")+4;
+        formatJson();
     }
 
     @Override
