@@ -234,7 +234,7 @@ public class ScriptsTree extends JTree implements MouseListener, TreeSelectionLi
                     if (JOptionPane.showConfirmDialog(null,
                             String.format("The group \"%s\" will be deleted!Are you sure?", ((Group) o).getName()),
                             "Tips", JOptionPane.YES_NO_CANCEL_OPTION) == 0) {
-                        Group.remove(((Group) o).getName());
+                        Group.removeGroupAndMoveScripts(((Group) o).getName());
                         tree.setGroupData(Group.getGroupList());
                         tree.expandAll();
                     }
@@ -263,11 +263,11 @@ public class ScriptsTree extends JTree implements MouseListener, TreeSelectionLi
                     String scriptName = JOptionPane.showInputDialog(null, "Script name:", "type the Script name");
                     if(scriptName == null || scriptName.equals("")) return;
                     Group group = (o instanceof Group) ? (Group) o : Group.getDefaultGroup();
-                    for (Group g : Group.getGroupList()) {
-                        if (g.haveScript(scriptName))
-                            return;
+                    PythonScript script = PythonScript.create(scriptName);
+                    if(script == null){
+                        JOptionPane.showMessageDialog(null, "Script \""+scriptName+"\" is exist!You should use new name.");
+                        return;
                     }
-                    PythonScript script = new PythonScript(scriptName);
                     group.registerScript(script);
                     tree.setGroupData(Group.getGroupList());
                     tree.expandAll();

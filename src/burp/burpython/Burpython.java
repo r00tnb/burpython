@@ -104,10 +104,12 @@ public class Burpython {
         return this.defaultEncoding;
     }
 
-    private void loadConfig(){
-        String configString = this.callbacks.loadExtensionSetting(this.name);
-        if(configString == null) return;
+    public void loadConfigFromString(String configString){
+        if(configString == null ) return;
+        //destroy data
+        Group.removeAll();
 
+        // load config
         String[] cls = configString.split("\\$");
         for(String obj:cls){
             if(obj.equals("")) continue;
@@ -122,7 +124,8 @@ public class Burpython {
                 if(oList[0].equals("Group")){
                     Group.get(Util.b64Decode(attrMap.get("name"),"UTF-8"));
                 }else if(oList[0].equals("PythonScript")){
-                    PythonScript s = new PythonScript(Util.b64Decode(attrMap.get("name"),"UTF-8"));
+                    PythonScript s = PythonScript.create(Util.b64Decode(attrMap.get("name"),"UTF-8"));
+                    if(s == null) continue;
                     s.setDescription(Util.b64Decode(attrMap.get("description"),"UTF-8"));
                     s.setSourceCode(Util.b64Decode(attrMap.get("sourceCode"),"UTF-8"));
                     s.setState(Util.b64Decode(attrMap.get("state"),"UTF-8"));
@@ -139,7 +142,15 @@ public class Burpython {
             }
         }
     }
-    public void saveConfig(){
+
+    private void loadConfig(){
+        String configString = this.callbacks.loadExtensionSetting(this.name);
+        if(configString == null) return;
+
+        loadConfigFromString(configString);
+    }
+
+    public String outputConfigString(){
         /**
          * 使用自定义格式存储对象数据：
          *      1.类名以$开始
@@ -167,7 +178,10 @@ public class Burpython {
         configString.append("$Interpreter");
         configString.append(Util.myFormat("|absPath:%s", this.pythonInterpreter.getAbsPath()));
 
-        this.callbacks.saveExtensionSetting(this.name, configString.toString());
+        return configString.toString();
+    }
+    public void saveConfig(){
+        this.callbacks.saveExtensionSetting(this.name, outputConfigString());
     }
 
     public BurpythonTab getBurpythonTab(){

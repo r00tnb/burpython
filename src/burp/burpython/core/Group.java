@@ -1,5 +1,6 @@
 package burp.burpython.core;
 
+import java.util.Iterator;
 import java.util.Vector;
 
 
@@ -40,12 +41,29 @@ public class Group {
         Group.groupList.add(g);
         return g;
     }
-    public static void remove(String name){
-        for(Group g:Group.groupList){
+    public static void removeGroupAndMoveScripts(String name){
+        if(Group.isBaseGroup(name) || name.equals("")) return;
+        Iterator<Group> iterator = Group.groupList.iterator();
+        Vector<PythonScript> scripts = null;
+        while(iterator.hasNext()){
+            Group g = iterator.next();
             if(g.getName().equals(name)){
-                Group.groupList.remove(g);
-                return;
+                scripts = g.getPythonScripts();
+                iterator.remove();
+                break;
             }
+        }
+        for(PythonScript script:scripts){
+            Group.getDefaultGroup().registerScript(script);
+        }
+    }
+    public static void removeAll(){
+        Iterator<Group> iterator = Group.groupList.iterator();
+        while(iterator.hasNext()){
+            Group g = iterator.next();
+            g.destroy();
+            if(Group.isBaseGroup(g.getName()) || g == Group.getDefaultGroup()) continue;
+            iterator.remove();
         }
     }
     public static Vector<Group> getGroupList(){
@@ -65,19 +83,12 @@ public class Group {
     }
 
     public void registerScript(PythonScript script){
+        if(this.haveScript(script.getName())) return;
         for(Group g:Group.getGroupList()){
+            if(g == this) continue;
             g.removeScript(script);
         }
         this.scriptList.add(script);
-        if(!script.getState().equals("")) return;
-        switch (this.name) {//设置加入内置组时的初始状态
-            case "listener":
-                script.setState(Group.LISTENER_OFF);
-                break;
-        
-            default:
-                break;
-        }
     }
 
     public Boolean haveScript(String scriptName){
@@ -116,6 +127,10 @@ public class Group {
             }
         }
         this.name = name;
+    }
+
+    public void destroy(){
+        this.scriptList.removeAllElements();
     }
 
     @Override

@@ -26,6 +26,7 @@ import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JTree;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeSelectionEvent;
@@ -47,7 +48,10 @@ public class BurpythonTab {
     }
 
     public BurpythonTab() {
-
+        this.mainPanel = new JSplitPane();
+        this.scriptsTree = new ScriptsTree("Scripts Tree");
+        this.leftPanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        this.pythonInfoPanel = new JPanel(new GridLayout(2, 1, 10, 10));
     }
 
     public void renderPythonInfoPanel() {
@@ -77,8 +81,12 @@ public class BurpythonTab {
             }
             
         });
+        JButton exportConfig = new JButton("export Burpython config to string");
+        JButton importConfig = new JButton("import Burpython config from string");
         JButton exportPackage = new JButton("export Burpython package");
         optionBox.add(exportPackage);
+        optionBox.add(importConfig);
+        optionBox.add(exportConfig);
         exportPackage.addActionListener(new ActionListener() {
 
             @Override
@@ -87,11 +95,13 @@ public class BurpythonTab {
                 JFileChooser fileChooser = new JFileChooser();
                 fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
                 fileChooser.setSelectedFile(new File("burpython.py"));
-                fileChooser.showSaveDialog(null);
-                if(fileChooser == null) return;
+                if(fileChooser.showSaveDialog(null) != JFileChooser.APPROVE_OPTION){
+                    return;
+                }
                 File saveFile = fileChooser.getSelectedFile();
                 if(saveFile.exists()){
-                    if(JOptionPane.showConfirmDialog(null, "File exists.Are you want to over it?") != 0){
+                    if(JOptionPane.showConfirmDialog(null, "File exists.Are you want to cover it?") != JOptionPane.OK_OPTION){
+                        Burpython.getInstance().info("1213");
                         return;
                     }
                 }
@@ -103,6 +113,38 @@ public class BurpythonTab {
                     // TODO Auto-generated catch block
                     Burpython.getInstance().error("File \""+ saveFile.getAbsolutePath()+ "\" save failed!");
                 }
+            }
+            
+        });
+        importConfig.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // TODO Auto-generated method stub
+                String configString = JOptionPane.showInputDialog(null, "paste config string here");
+                if(configString == null || configString.equals("")) return;
+                if(JOptionPane.showConfirmDialog(null, "Config will be covered.Are you sure?") == 0){
+                    Burpython.getInstance().loadConfigFromString(configString);
+                    
+                    SwingUtilities.invokeLater(new Runnable(){
+
+                        @Override
+                        public void run() {
+                            // TODO Auto-generated method stub
+                            Burpython.getInstance().getBurpythonTab().init();
+                        }
+
+                    });
+                }
+            }
+            
+        });
+        exportConfig.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // TODO Auto-generated method stub
+                JOptionPane.showInputDialog(null, "copy and save the config string:", Burpython.getInstance().outputConfigString());
             }
             
         });
@@ -139,11 +181,6 @@ public class BurpythonTab {
     }
 
     public void init() {
-        this.mainPanel = new JSplitPane();
-        this.scriptsTree = new ScriptsTree("Scripts Tree");
-        this.leftPanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-        this.pythonInfoPanel = new JPanel(new GridLayout(2, 1, 10, 10));
-
         this.scriptsTree.setGroupData(Group.getGroupList());
         this.scriptsTree.expandAll();
 

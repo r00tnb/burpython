@@ -7,7 +7,16 @@ public class PythonScript {
     String description = "";
     String state = "";// 在不同的内置分组中表现为不同的意义
 
-    public PythonScript(String name) {
+    static public PythonScript create(String name){
+        for(Group g:Group.getGroupList()){
+            if(g.haveScript(name)){
+                return null;
+            }
+        }
+        return new PythonScript(name);
+    }
+
+    private PythonScript(String name) {
         this.name = name;
         this.sourceCode = Util.getStringFromFile("template.py");
         Group.getDefaultGroup().registerScript(this);
