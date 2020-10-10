@@ -5,6 +5,8 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.Vector;
@@ -23,33 +25,76 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.ScrollPaneLayout;
 import javax.swing.Scrollable;
 import javax.swing.text.JTextComponent;
+import javax.swing.text.PlainDocument;
 
 import burp.IMessageEditor;
 import burp.IMessageEditorTab;
 import burp.ITextEditor;
 import burp.burpython.Burpython;
+import burp.burpython.UI.pyeditor.LineNumberHeaderView;
+import burp.burpython.UI.pyeditor.TabToSpaceListener;
+import burp.burpython.core.Util;
 
-public class MessageTab extends JPanel implements IMessageEditorTab {
+public class MessageTab extends JScrollPane implements IMessageEditorTab {
 
     String name = "";
-    JTextPane textPane;
+    JTextArea textPane;
     byte[] content;
     int bodyIndex;
     String jsonData;
+    String SPACE = "    ";
 
     public MessageTab(String name) {
         this.name = name;
-        textPane = new JTextPane();
-        add(textPane);
+        setViewportView(textPane = new JTextArea());
+        textPane.addKeyListener(new TabToSpaceListener());
+        LineNumberHeaderView line = new LineNumberHeaderView();
+        line.setLineHeight(line.getFontMetrics(textPane.getFont()).getHeight());
+        setRowHeaderView(line);
+    }
+
+    public byte[] buildData(){
+        StringBuilder data = new StringBuilder();
+        data.append(new String(content).substring(0,bodyIndex+4));
+        data.append(jsonData.replaceAll("(\\n[ ]{4,})|\\n|\\t", ""));
+        return data.toString().getBytes();
     }
 
     public void formatJson(){
         String body = new String(content).substring(bodyIndex);
-        jsonData = body;
-        textPane.setText(jsonData);
-        if(body == null || body.length() < 3 || !body.startsWith("{") || !body.endsWith("}")){
-            return;
+        jsonData = Util.urlDecode(body);
+        
+        StringBuilder json = new StringBuilder();
+        int spaceNum = 0;
+        jsonData += "$";
+        for(int i=0;i<jsonData.length()-1;i++){
+            char ch = jsonData.charAt(i);
+            json.append(ch);
+            if(ch == '{' || ch == '['){
+                spaceNum++;
+                json.append("\n"+space(spaceNum));
+            }
+            if(ch == ','){
+                json.append("\n"+space(spaceNum));
+            }
+            if(ch == '}' || ch == ']'){
+                spaceNum--;
+                json.deleteCharAt(json.length()-1);
+                json.append("\n"+space(spaceNum)+ch);
+                if(jsonData.charAt(i+1) != ',')
+                    json.append("\n"+space(spaceNum));
+            }
         }
+
+        jsonData = json.toString();
+    }
+
+    protected String space(int num){
+        String result = "";
+        for(int i=0;i<num;i++){
+            result += SPACE;
+        }
+        return result;
     }
 
     @Override
@@ -74,20 +119,22 @@ public class MessageTab extends JPanel implements IMessageEditorTab {
     public void setMessage(byte[] content, boolean isRequest) {
         // TODO Auto-generated method stub
         this.content = content;
-        this.bodyIndex = new String(content).indexOf("\r\n\r\n")+4;
+        this.bodyIndex = new String(content).lastIndexOf("\r\n\r\n")+4;
         formatJson();
+        textPane.setText(jsonData);
     }
 
     @Override
     public byte[] getMessage() {
         // TODO Auto-generated method stub
-        return null;
+        jsonData = textPane.getText();
+        return buildData();
     }
 
     @Override
     public boolean isModified() {
         // TODO Auto-generated method stub
-        return false;
+        return true;
     }
 
     @Override

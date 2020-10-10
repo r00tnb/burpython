@@ -153,6 +153,18 @@ public class Util {
         }
     }
 
+    //按下指定按键
+    public static void keyPress(int keyCode){
+        try {
+            Robot robot = new Robot();
+            robot.keyPress(keyCode);
+            robot.keyRelease(keyCode);
+        } catch (AWTException e) {
+            // TODO Auto-generated catch block
+            Burpython.getInstance().printStackTrace(e);
+        }
+    }
+
     // Ctrl+V
     public static void pressCtrlV() {
         try {
@@ -259,5 +271,15 @@ public class Util {
             Burpython.getInstance().printStackTrace(e);
         }
         return file;
+    }
+
+    //URL解码
+    public static String urlDecode(String data){
+        return Burpython.getInstance().helpers.urlDecode(data);
+    }
+
+    //url编码
+    public static String urlEncode(String data){
+        return Burpython.getInstance().helpers.urlEncode(data);
     }
 }

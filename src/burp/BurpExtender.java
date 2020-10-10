@@ -95,7 +95,7 @@ public class BurpExtender implements IBurpExtender, ITab, IContextMenuFactory, I
     @Override
     public IMessageEditorTab createNewInstance(IMessageEditorController controller, boolean editable) {
         // TODO Auto-generated method stub
-        return new MessageTab("ok");
+        return new MessageTab("BodyJSONBeautiful");
     }
 
     @Override

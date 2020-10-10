@@ -30,5 +30,11 @@ public class PythonEditorPane extends JTextPane {
     public void setDefaultColor(Color c){
         PythonView.DEFAULT = c;
     }
+
+    @Override
+    public String getText() {
+        // TODO Auto-generated method stub
+        return super.getText().replaceAll("\\t", "    ");
+    }
     
 }
