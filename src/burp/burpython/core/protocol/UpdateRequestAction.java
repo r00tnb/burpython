@@ -22,7 +22,7 @@ public class UpdateRequestAction implements MyAction {
         byte[] body = Arrays.copyOfRange(requestResponse.getRequest(),requestInfo.getBodyOffset(),requestResponse.getRequest().length);
         List<String> headers = requestInfo.getHeaders();
         URL url = requestInfo.getUrl();
-        String host = url.getHost()+(url.getPort()==80?"":":"+url.getPort());
+        String host = getHostString(url);
         for(String k:paramMap.keySet()){
             switch (k) {
                 case "get_request":
@@ -56,6 +56,9 @@ public class UpdateRequestAction implements MyAction {
                     if(r != null){
                         return new ResponseData("ok").put("last", new String(r.getRequest()));
                     }
+                case "get_response":
+                    byte[] response = requestResponse.getResponse();
+                    return new ResponseData("ok").put("response", new String(response == null?"burpython_null".getBytes():response));
                 default:
                     break;
             }
@@ -63,16 +66,17 @@ public class UpdateRequestAction implements MyAction {
         return null;
     }
 
+    String getHostString(URL url){
+        return url.getHost()+(url.getPort()==80?"":":"+url.getPort());
+    }
+
     Vector<IHttpRequestResponse> getRequestResponseByHost(String host){
         IHttpRequestResponse[] rrl = Burpython.getInstance().callbacks.getProxyHistory();
         Vector<IHttpRequestResponse> rrv = new Vector<>();
         for(IHttpRequestResponse r:rrl){
-            List<String> header_l = Burpython.getInstance().helpers.analyzeRequest(r.getRequest()).getHeaders();
-            for(String h:header_l){
-                if(h.startsWith("Host") && h.endsWith(host)){
-                    rrv.add(r);
-                    break;
-                }
+            URL url = Burpython.getInstance().helpers.analyzeRequest(r).getUrl();
+            if(host.equals(getHostString(url))){
+                rrv.add(r);
             }
         }
         return rrv;
@@ -81,11 +85,9 @@ public class UpdateRequestAction implements MyAction {
     IHttpRequestResponse getLastRequestReponse(String host){
         IHttpRequestResponse[] rrl = Burpython.getInstance().callbacks.getProxyHistory();
         for(int i=rrl.length-1;i>=0;i--){
-            List<String> header_l = Burpython.getInstance().helpers.analyzeRequest(rrl[i].getRequest()).getHeaders();
-            for(String h:header_l){
-                if(h.startsWith("Host") && h.endsWith(host)){
-                    return rrl[i];
-                }
+            URL url = Burpython.getInstance().helpers.analyzeRequest(rrl[i]).getUrl();
+            if(host.equals(getHostString(url))){
+                return rrl[i];
             }
         }
         return null;

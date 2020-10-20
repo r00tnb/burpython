@@ -70,7 +70,10 @@ public class Robot{// 用于和脚本交互
                     continue;
                 }
                 ResponseData data = request.getAction().doAction(request.getParamsMap());
-                Burpython.getInstance().debug("send: "+data.info());
+                Burpython.getInstance().debug("send: "+(data == null?"(This msg is null)":data.info()));
+                if(data == null){
+                    break;
+                }
                 this.sendLine(data);
             }
             

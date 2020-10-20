@@ -86,6 +86,7 @@ class NodeRender implements TreeCellRenderer {
             PythonScript script = (PythonScript) obj;
             if(script.isRun()){
                 sss.setVisible(true);
+                nameLabel.setForeground(Color.GREEN);
             }
             nameLabel.setText(script.getName());
             for (Group g : Group.getGroupList()) {
@@ -96,6 +97,7 @@ class NodeRender implements TreeCellRenderer {
                             checkBox.setForeground(Color.GREEN);
                             checkBox.setText("Running");
                             checkBox.setSelected(true);
+                            nameLabel.setForeground(Color.GREEN);
                         }else{
                             checkBox.setForeground(Color.RED);
                             checkBox.setText("Closed");
