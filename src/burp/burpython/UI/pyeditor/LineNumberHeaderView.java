@@ -6,7 +6,9 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Rectangle;
-public class LineNumberHeaderView extends javax.swing.JComponent {
+
+import javax.swing.JComponent;
+public class LineNumberHeaderView extends JComponent {
  
     /**
 	 * JAVA TextArea行数显示插件
