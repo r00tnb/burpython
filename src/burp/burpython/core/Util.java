@@ -254,7 +254,7 @@ public class Util {
     // 创建临时文件,并写入数据
     public static File createTempFile(String fileName, String data, String dirName) {
         dirName = dirName==null?"":Util.strip(dirName, "\\/");
-        String filePath = System.getProperty("java.io.tmpdir") + dirName +File.separator + Util.strip(fileName, "\\/");
+        String filePath = System.getProperty("java.io.tmpdir")+File.separator + dirName +File.separator + Util.strip(fileName, "\\/");
         File file = new File(filePath);
         try {
             if(!file.getParentFile().exists()){

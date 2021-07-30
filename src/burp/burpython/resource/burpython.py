@@ -2,7 +2,6 @@ import sys
 import base64
 import re
 import json
-import requests
 
 def isVersion3():
     '''judge if python major version is 3'''
@@ -52,11 +51,11 @@ class HTTPResponse(object):
             self.parse()
 
     def parse(self):
-        re_response_line = re.match(r"(HTTP|HTTPS)/(\d+)\.(\d+) (\d+) ([\S ]*)\r\n", self.response_raw)
+        re_response_line = re.match(r"(HTTP|HTTPS)/(\d+)(\.\d+)? (\d+) ([\S ]*)\r\n", self.response_raw)
         self.response_line.update({
             "protocol":re_response_line.group(1), 
             "major":re_response_line.group(2), 
-            "minor":re_response_line.group(3), 
+            "minor":re_response_line.group(3).strip('.') if re_response_line.group(3) is not None else 0, 
             "code": re_response_line.group(4), 
             "message": re_response_line.group(5)
         })
